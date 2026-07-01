@@ -63,8 +63,14 @@ def decision_node(state: QuoteFlowState) -> QuoteFlowState:
         price_max=price_max,
     )
 
-    claude_messages = [SystemMessage(content=system_prompt)]
-    claude_messages.extend(messages)
+    human_context = " ".join(
+        m.content for m in messages if isinstance(m, HumanMessage)
+    )
+
+    claude_messages = [
+        SystemMessage(content=system_prompt),
+        HumanMessage(content=f"Here is the conversation so far: {human_context}\n\nPlease present the quote.")
+    ]
 
     response = llm.invoke(claude_messages)
     updated_messages = messages + [AIMessage(content=response.content)]

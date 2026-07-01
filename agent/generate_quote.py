@@ -159,7 +159,6 @@ def generate_quote_node(state: QuoteFlowState) -> QuoteFlowState:
     rules = PRICING_RULES.get(service_type)
 
     if not rules:
-        # No pricing rules found — flag for site visit
         return {
             **state,
             "needs_site_visit": True,
@@ -175,21 +174,32 @@ def generate_quote_node(state: QuoteFlowState) -> QuoteFlowState:
         margin=margin_display
     )
 
-    claude_messages = [SystemMessage(content=system_prompt)]
-    claude_messages.extend(messages)
+    human_context = " ".join(
+        m.content for m in messages if isinstance(m, HumanMessage)
+    )
+
+    claude_messages = [
+        SystemMessage(content=system_prompt),
+        HumanMessage(content=f"Here is the conversation so far: {human_context}\n\nCalculate the quote.")
+    ]
 
     response = llm.invoke(claude_messages)
 
     # Parse the quote
     try:
         raw = response.content.strip()
+        # Strip markdown code fences if present
+        if raw.startswith("```"):
+            raw = raw.split("```")[1]
+            if raw.startswith("json"):
+                raw = raw[4:]
+        raw = raw.strip()
         quote_data = json.loads(raw)
         price_range = (
             round(quote_data["price_min"]),
             round(quote_data["price_max"])
         )
-    except (json.JSONDecodeError, KeyError):
-        # Fallback — flag for site visit if we can't calculate
+    except (json.JSONDecodeError, KeyError) as e:
         return {
             **state,
             "needs_site_visit": True,

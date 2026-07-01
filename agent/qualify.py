@@ -131,8 +131,16 @@ def qualify_node(state: QuoteFlowState) -> QuoteFlowState:
         questions=questions
     )
 
-    claude_messages = [SystemMessage(content=system_prompt)]
-    claude_messages.extend(messages)
+    # Anthropic requires conversation to end with a human message.
+    # Summarize conversation context and re-frame as a human turn.
+    human_context = " ".join(
+        m.content for m in messages if isinstance(m, HumanMessage)
+    )
+
+    claude_messages = [
+        SystemMessage(content=system_prompt),
+        HumanMessage(content=f"Here is the conversation so far: {human_context}\n\nPlease ask the next qualifying question.")
+    ]
 
     response = llm.invoke(claude_messages)
 

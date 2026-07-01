@@ -54,10 +54,11 @@ Given the conversation history, extract and return a JSON object with these fiel
 2. "in_service_area": true or false. The customer's location (if mentioned) must be in: {area}
    If location not mentioned yet, return null.
 
-3. "needs_site_visit": true or false. Return true if:
-   - The job sounds large or complex
-   - Exact measurements are needed before pricing
-   - The customer seems unsure about scope
+3. "needs_site_visit": true or false. Return true ONLY if:
+   - The job is explicitly very large (full house demolition, commercial work)
+   - The customer explicitly says they are unsure of measurements
+   Default to false for standard residential jobs like gutter cleaning, lawn care,
+   junk removal, window cleaning, house cleaning. These can always be quoted remotely.
    If unclear, return false.
 
 4. "reclassified": true if this is a correction of a previous classification, false otherwise.
@@ -76,8 +77,16 @@ def router_node(state: QuoteFlowState) -> QuoteFlowState:
         area=", ".join(SERVICE_AREA)
     )
 
-    claude_messages = [SystemMessage(content=system_prompt)]
-    claude_messages.extend(messages)
+    # Anthropic requires conversation to end with a human message.
+    # Extract just the human messages for classification context.
+    human_context = " ".join(
+        m.content for m in messages if isinstance(m, HumanMessage)
+    )
+
+    claude_messages = [
+        SystemMessage(content=system_prompt),
+        HumanMessage(content=f"Classify this conversation: {human_context}")
+    ]
 
     response = llm.invoke(claude_messages)
 
@@ -94,11 +103,21 @@ def router_node(state: QuoteFlowState) -> QuoteFlowState:
             "reclassified": False,
         }
 
+    # Standard residential services never need a site visit by default
+    ALWAYS_QUOTABLE = [
+        "gutter_cleaning", "lawn_care", "junk_removal", "house_cleaning",
+        "window_cleaning", "pressure_washing", "snow_removal", "painting"
+    ]
+    service = classification.get("service_type", "unknown")
+    needs_visit = classification.get("needs_site_visit", False)
+    if service in ALWAYS_QUOTABLE:
+        needs_visit = False
+
     return {
         **state,
-        "service_type": classification.get("service_type", "unknown"),
+        "service_type": service,
         "in_service_area": classification.get("in_service_area", None),
-        "needs_site_visit": classification.get("needs_site_visit", False),
+        "needs_site_visit": needs_visit,
         "reclassified": classification.get("reclassified", False),
     }
 

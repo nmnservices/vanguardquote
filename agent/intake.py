@@ -4,26 +4,26 @@ from langgraph.graph import StateGraph, END
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from dotenv import load_dotenv
+import re
 import os
 
 load_dotenv()
 
 # ── State Schema ──────────────────────────────────────────────
-# Defined once here, all future nodes will import and extend this
 
 class QuoteFlowState(TypedDict):
-    messages: list                  # full conversation history
-    lead_name: Optional[str]        # extracted by intake
-    contact: Optional[str]          # phone or email
-    service_type: Optional[str]     # classified by router (later)
-    in_service_area: Optional[bool] # checked by router (later)
+    messages: list
+    lead_name: Optional[str]
+    contact: Optional[str]
+    service_type: Optional[str]
+    in_service_area: Optional[bool]
     needs_site_visit: Optional[bool]
     qualify_answers: Optional[dict]
     price_range: Optional[tuple]
-    decision: Optional[str]         # accepted | more_info | escalate
-    lead_object: Optional[dict]     # final payload sent to handoff
-    memory: Optional[dict]          # carries context across loops
-    reclassified: Optional[bool]    # flags router second pass
+    decision: Optional[str]
+    lead_object: Optional[dict]
+    memory: Optional[dict]
+    reclassified: Optional[bool]
 
 
 # ── LLM ───────────────────────────────────────────────────────
@@ -32,6 +32,48 @@ llm = ChatAnthropic(
     model="claude-sonnet-4-6",
     api_key=os.getenv("ANTHROPIC_API_KEY")
 )
+
+
+# ── Name/contact extraction ───────────────────────────────────
+
+NOT_NAMES = {"in", "a", "an", "the", "from", "at", "looking", "here", "not", "so", "just"}
+
+def _extract_name_contact(messages: list):
+    """Extract name and email/phone from human messages."""
+    name = None
+    contact = None
+
+    for msg in messages:
+        if isinstance(msg, HumanMessage):
+            content = msg.content
+
+            # Email
+            email_match = re.search(r'[\w\.-]+@[\w\.-]+\.\w+', content)
+            if email_match:
+                contact = email_match.group()
+
+            # Phone
+            phone_match = re.search(r'\b\d[\d\s\-().]{7,}\d\b', content)
+            if phone_match and not contact:
+                contact = phone_match.group().strip()
+
+            # Name — "my name is X" or "this is X" (most reliable)
+            name_match = re.search(
+                r"(?:my name is|this is)\s+([A-Z][a-z]+)",
+                content, re.IGNORECASE
+            )
+            if name_match:
+                name = name_match.group(1)
+                continue
+
+            # Fallback — "I'm X" only if X is not a common non-name word
+            im_match = re.search(r"i'?m\s+([A-Za-z]+)", content, re.IGNORECASE)
+            if im_match:
+                candidate = im_match.group(1)
+                if candidate.lower() not in NOT_NAMES:
+                    name = candidate.capitalize()
+
+    return name, contact
 
 
 # ── Intake Node ───────────────────────────────────────────────
@@ -51,19 +93,20 @@ def intake_node(state: QuoteFlowState) -> QuoteFlowState:
 
     messages = state.get("messages", [])
 
-    # Build message list for Claude
     claude_messages = [SystemMessage(content=INTAKE_SYSTEM_PROMPT)]
     claude_messages.extend(messages)
 
-    # Call Claude
     response = llm.invoke(claude_messages)
 
-    # Append Claude's response to history
     updated_messages = messages + [AIMessage(content=response.content)]
+
+    name, contact = _extract_name_contact(messages)
 
     return {
         **state,
         "messages": updated_messages,
+        "lead_name": name,
+        "contact": contact,
     }
 
 
@@ -82,7 +125,6 @@ def build_intake_graph():
 if __name__ == "__main__":
     graph = build_intake_graph()
 
-    # Simulate a customer's first message
     result = graph.invoke({
         "messages": [HumanMessage(content="Hi, I need to get a quote for cleaning my gutters")],
         "lead_name": None,
