@@ -165,6 +165,16 @@ def generate_quote_node(state: QuoteFlowState) -> QuoteFlowState:
             "price_range": None,
         }
 
+    # Don't quote without qualify answers — too inaccurate
+    qualify_answers = state.get("qualify_answers")
+    if not qualify_answers:
+        return {
+            **state,
+            "needs_site_visit": True,
+            "price_range": None,
+            "decision": "more_info",
+        }
+        
     margin_pct = rules["margin"]
     margin_display = int(margin_pct * 100)
 
