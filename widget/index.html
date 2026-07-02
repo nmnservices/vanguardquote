@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>QuoteFlow Widget</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    /* ── Chat bubble trigger ── */
+    #qf-trigger {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 56px;
+      height: 56px;
+      background: #2563eb;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(37,99,235,0.4);
+      z-index: 1000;
+      transition: transform 0.2s;
+    }
+    #qf-trigger:hover { transform: scale(1.05); }
+    #qf-trigger svg { width: 24px; height: 24px; fill: white; }
+
+    /* ── Chat window ── */
+    #qf-window {
+      position: fixed;
+      bottom: 90px;
+      right: 24px;
+      width: 360px;
+      height: 520px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      z-index: 999;
+    }
+    #qf-window.open { display: flex; }
+
+    /* ── Header ── */
+    #qf-header {
+      background: #2563eb;
+      color: white;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    #qf-header .avatar {
+      width: 36px;
+      height: 36px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    #qf-header .info .name { font-weight: 600; font-size: 15px; }
+    #qf-header .info .status { font-size: 12px; opacity: 0.8; }
+
+    /* ── Messages ── */
+    #qf-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .msg {
+      max-width: 80%;
+      padding: 10px 14px;
+      border-radius: 16px;
+      font-size: 14px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+    .msg.bot {
+      background: #f1f5f9;
+      color: #1e293b;
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+    }
+    .msg.user {
+      background: #2563eb;
+      color: white;
+      align-self: flex-end;
+      border-bottom-right-radius: 4px;
+    }
+    .msg.typing {
+      background: #f1f5f9;
+      align-self: flex-start;
+      color: #94a3b8;
+      font-style: italic;
+    }
+
+    /* ── Quote card ── */
+    .quote-card {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 13px;
+      align-self: flex-start;
+      max-width: 85%;
+    }
+    .quote-card .price {
+      font-size: 20px;
+      font-weight: 700;
+      color: #2563eb;
+      margin: 4px 0 8px;
+    }
+    .quote-card .label { color: #64748b; font-size: 12px; }
+    .quote-card .service { font-weight: 600; color: #1e293b; }
+
+    /* ── Input ── */
+    #qf-input-area {
+      padding: 12px 16px;
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      gap: 8px;
+    }
+    #qf-input {
+      flex: 1;
+      border: 1px solid #e2e8f0;
+      border-radius: 24px;
+      padding: 10px 16px;
+      font-size: 14px;
+      outline: none;
+      resize: none;
+      font-family: inherit;
+    }
+    #qf-input:focus { border-color: #2563eb; }
+    #qf-send {
+      width: 40px;
+      height: 40px;
+      background: #2563eb;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.2s;
+    }
+    #qf-send:hover { background: #1d4ed8; }
+    #qf-send svg { width: 18px; height: 18px; fill: white; }
+  </style>
+</head>
+<body>
+
+<!-- Chat trigger bubble -->
+<div id="qf-trigger" onclick="toggleChat()">
+  <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+</div>
+
+<!-- Chat window -->
+<div id="qf-window">
+  <div id="qf-header">
+    <div class="avatar">🏠</div>
+    <div class="info">
+      <div class="name">QuoteFlow Assistant</div>
+      <div class="status">● Online — instant quotes</div>
+    </div>
+  </div>
+
+  <div id="qf-messages"></div>
+
+  <div id="qf-input-area">
+    <textarea id="qf-input" rows="1" placeholder="Describe what you need..."></textarea>
+    <button id="qf-send" onclick="sendMessage()">
+      <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+  const API = 'http://localhost:8000/chat';
+  let sessionId = null;
+  let isOpen = false;
+
+  function toggleChat() {
+    isOpen = !isOpen;
+    document.getElementById('qf-window').classList.toggle('open', isOpen);
+    if (isOpen && document.getElementById('qf-messages').children.length === 0) {
+      addMessage('bot', "👋 Hi! I can get you an instant quote for any home service — gutters, junk removal, lawn care, cleaning, and more.\n\nWhat do you need help with?");
+    }
+  }
+
+  function addMessage(role, text) {
+    const msgs = document.getElementById('qf-messages');
+    const div = document.createElement('div');
+    div.className = `msg ${role}`;
+    // Convert markdown bold to HTML
+    div.innerHTML = text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\n/g, '<br>');
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+    return div;
+  }
+
+  function addQuoteCard(service, min, max, currency) {
+    const msgs = document.getElementById('qf-messages');
+    const card = document.createElement('div');
+    card.className = 'quote-card';
+    card.innerHTML = `
+      <div class="label">Estimated quote for</div>
+      <div class="service">${service.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</div>
+      <div class="price">$${min.toLocaleString()} – $${max.toLocaleString()} ${currency}</div>
+      <div class="label">✅ No obligation · Free to book</div>
+    `;
+    msgs.appendChild(card);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  function showTyping() {
+    return addMessage('typing', '...');
+  }
+
+  async function sendMessage() {
+    const input = document.getElementById('qf-input');
+    const text = input.value.trim();
+    if (!text) return;
+
+    addMessage('user', text);
+    input.value = '';
+    input.style.height = 'auto';
+
+    const typing = showTyping();
+
+    try {
+      const res = await fetch(API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id: sessionId, message: text })
+      });
+
+      const data = await res.json();
+      sessionId = data.session_id;
+      typing.remove();
+
+      addMessage('bot', data.reply);
+
+      // Show quote card if price was calculated
+      if (data.price_range && data.price_range.min) {
+        addQuoteCard(
+          data.service_type,
+          data.price_range.min,
+          data.price_range.max,
+          data.price_range.currency
+        );
+      }
+
+    } catch (err) {
+      typing.remove();
+      addMessage('bot', 'Sorry, something went wrong. Please try again.');
+    }
+  }
+
+  // Send on Enter (Shift+Enter for new line)
+  document.getElementById('qf-input').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  // Auto-resize textarea
+  document.getElementById('qf-input').addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+  });
+
+  // Open chat automatically after 3 seconds
+  setTimeout(() => { if (!isOpen) toggleChat(); }, 3000);
+</script>
+</body>
+</html>
