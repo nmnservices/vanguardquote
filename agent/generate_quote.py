@@ -164,16 +164,6 @@ def generate_quote_node(state: QuoteFlowState) -> QuoteFlowState:
             "needs_site_visit": True,
             "price_range": None,
         }
-
-    # Don't quote without qualify answers — too inaccurate
-    qualify_answers = state.get("qualify_answers")
-    if not qualify_answers:
-        return {
-            **state,
-            "needs_site_visit": True,
-            "price_range": None,
-            "decision": "more_info",
-        }
         
     margin_pct = rules["margin"]
     margin_display = int(margin_pct * 100)
@@ -188,9 +178,20 @@ def generate_quote_node(state: QuoteFlowState) -> QuoteFlowState:
         m.content for m in messages if isinstance(m, HumanMessage)
     )
 
+    # RAG — retrieve similar past leads for pricing context
+    rag_context = ""
+    try:
+        from agent.rag import retrieve_similar_leads, build_rag_context
+        similar = retrieve_similar_leads(service_type, human_context)
+        rag_context = build_rag_context(similar)
+        if rag_context:
+            print(f"  [RAG] Found {len(similar)} similar past jobs")
+    except Exception as e:
+        print(f"  [RAG] Retrieval error: {e}")
+
     claude_messages = [
         SystemMessage(content=system_prompt),
-        HumanMessage(content=f"Here is the conversation so far: {human_context}\n\nCalculate the quote.")
+        HumanMessage(content=f"Here is the conversation so far: {human_context}\n\n{rag_context}\n\nCalculate the quote.")
     ]
 
     response = llm.invoke(claude_messages)

@@ -38,6 +38,13 @@ def handoff_node(state: QuoteFlowState) -> QuoteFlowState:
     # or push to Slack. We wire this up in Stage 5 (deployment).
     _deliver_lead(lead_object)
 
+    # Store lead in Supabase for future RAG retrieval
+    try:
+        from agent.rag import store_lead
+        store_lead(lead_object, state.get("messages", []))
+    except Exception as e:
+        print(f"  [RAG] Store error: {e}")
+
     return {
         **state,
         "lead_object": lead_object,
