@@ -211,7 +211,30 @@
   const trigger = document.createElement('button');
   trigger.id = 'vq-trigger';
   trigger.setAttribute('aria-label', 'Get an instant quote');
-  trigger.innerHTML = `<svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>`;
+  trigger.innerHTML = `
+    <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+  `;
+  
+  const triggerLabel = document.createElement('div');
+  triggerLabel.style.cssText = `
+    position: fixed;
+    bottom: 34px;
+    right: 88px;
+    background: #16a34a;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    z-index: 999999;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    cursor: pointer;
+  `;
+  triggerLabel.textContent = '⚡ Instant Quote';
+  triggerLabel.addEventListener('click', toggleChat);
+  document.body.appendChild(triggerLabel);
 
   const win = document.createElement('div');
   win.id = 'vq-window';
