@@ -298,10 +298,8 @@
     leadPhone = phoneInput;
     switchToChat();
 
-    // Send first message pre-populated with their details
-    const firstMsg = `Hi, my name is ${leadName} and my phone number is ${leadPhone}.`;
-    addMsg('user', `Name: ${leadName} | Phone: ${leadPhone}`);
-    await sendToAPI(firstMsg);
+    // Welcome message — ask for job description before calling API
+    addMsg('bot', `Hi ${leadName}! 👋 Thanks for reaching out to Vanguard Haul.\n\nWhat can we help you with today? Describe your job and location and we'll get you an instant quote.`);
   });
 
   // ── Send message ─────────────────────────────────────────────
@@ -312,7 +310,14 @@
     addMsg('user', text);
     input.value = '';
     input.style.height = 'auto';
-    await sendToAPI(text);
+
+    // On first message, prepend name and phone so agent has full context
+    const isFirstMessage = sessionId === null;
+    const msgToSend = isFirstMessage
+      ? `My name is ${leadName} and my phone number is ${leadPhone}. ${text}`
+      : text;
+
+    await sendToAPI(msgToSend);
   }
 
   async function sendToAPI(text) {
