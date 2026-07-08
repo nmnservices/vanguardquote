@@ -1,5 +1,5 @@
 """
-QuoteFlow Eval Suite — 20 test cases
+VanguardQuote Eval Suite — 20 test cases
 Tests: happy path, edge cases, adversarial, out-of-area, site visit
 Target: all 20 passing before deployment
 """
@@ -254,7 +254,7 @@ if __name__ == "__main__":
     failed = 0
     errors = []
 
-    print(f"\n── QuoteFlow Eval Suite — {len(TESTS)} tests ──\n")
+    print(f"\n── VanguardQuote Eval Suite — {len(TESTS)} tests ──\n")
 
     for i, test in enumerate(TESTS):
         label = test["label"]

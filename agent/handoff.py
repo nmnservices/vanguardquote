@@ -1,5 +1,5 @@
 from langchain_core.messages import HumanMessage, AIMessage
-from agent.intake import QuoteFlowState
+from agent.intake import VanguardQuoteState
 from dotenv import load_dotenv
 from datetime import datetime, timezone
 import os
@@ -10,7 +10,7 @@ load_dotenv()
 
 # ── Handoff node ───────────────────────────────────────────────
 
-def handoff_node(state: QuoteFlowState) -> QuoteFlowState:
+def handoff_node(state: VanguardQuoteState) -> VanguardQuoteState:
     """Package the lead into a structured object and fire it to the business owner."""
 
     # Build the lead object from state
@@ -51,7 +51,7 @@ def handoff_node(state: QuoteFlowState) -> QuoteFlowState:
     }
 
 
-def _extract_name(state: QuoteFlowState) -> str:
+def _extract_name(state: VanguardQuoteState) -> str:
     """Try to extract name from conversation if not in state."""
     messages = state.get("messages", [])
     for msg in messages:
@@ -62,7 +62,7 @@ def _extract_name(state: QuoteFlowState) -> str:
     return "Unknown"
 
 
-def _extract_contact(state: QuoteFlowState) -> str:
+def _extract_contact(state: VanguardQuoteState) -> str:
     """Try to extract contact from conversation if not in state."""
     messages = state.get("messages", [])
     for msg in messages:
@@ -74,7 +74,7 @@ def _extract_contact(state: QuoteFlowState) -> str:
     return "Unknown"
 
 
-def _score_lead(state: QuoteFlowState) -> str:
+def _score_lead(state: VanguardQuoteState) -> str:
     """Score lead quality based on available signals."""
     score = 0
 
@@ -106,7 +106,7 @@ def _deliver_lead(lead_object: dict):
     Next: POST to webhook URL stored in Supabase config.
     """
     print("\n" + "="*50)
-    print("🔔  NEW LEAD — QuoteFlow")
+    print("🔔  NEW LEAD — VanguardQuote")
     print("="*50)
     print(f"  Name:          {lead_object['lead_name']}")
     print(f"  Contact:       {lead_object['contact']}")

@@ -1,15 +1,15 @@
-# QuoteFlow — AI Lead Qualification & Quoting Agent
+# VanguardQuote — AI Lead Qualification & Quoting Agent
 
 An AI-powered conversational agent that qualifies inbound leads and generates instant price quotes for home service businesses. Built with LangGraph, FastAPI, and Claude (Anthropic).
 
-**Live demo:** [quoteflow-agent-jet.vercel.app](https://quoteflow-agent-jet.vercel.app)
+**Live demo:** [vanguardquote-agent-jet.vercel.app](https://vanguardquote-agent-jet.vercel.app)
 **API:** [web-production-0d92f.up.railway.app](https://web-production-0d92f.up.railway.app)
 
 ---
 
 ## What It Does
 
-Home service businesses (junk removal, gutter cleaning, lawn care, demolition, HVAC, etc.) lose leads every day because they can't respond fast enough. QuoteFlow fixes that — it engages inbound leads instantly, qualifies them with service-specific questions, generates a price range from a configurable pricing model, and delivers a structured lead object to the business owner via webhook, email, or Slack.
+Home service businesses (junk removal, gutter cleaning, lawn care, demolition, HVAC, etc.) lose leads every day because they can't respond fast enough. VanguardQuote fixes that — it engages inbound leads instantly, qualifies them with service-specific questions, generates a price range from a configurable pricing model, and delivers a structured lead object to the business owner via webhook, email, or Slack.
 
 **The full flow:**
 1. Customer sends a message describing their job
@@ -40,7 +40,7 @@ agent/
 ### State schema
 
 ```python
-class QuoteFlowState(TypedDict):
+class VanguardQuoteState(TypedDict):
     messages: list
     lead_name: Optional[str]
     contact: Optional[str]
@@ -89,7 +89,7 @@ Conditional edges handle three router paths:
 20 test cases covering happy path, out-of-area, site visit, ambiguous input, adversarial, and contact extraction scenarios.
 
 ```
-── QuoteFlow Eval Suite — 20 tests ──
+── VanguardQuote Eval Suite — 20 tests ──
 
 Passed: 20/20
 Score:  1.0
@@ -134,8 +134,8 @@ Gutter cleaning · Lawn care · Junk removal · House cleaning · Window cleanin
 
 ```bash
 # Clone
-git clone https://github.com/nmnservices/quoteflow-agent.git
-cd quoteflow-agent
+git clone https://github.com/nmnservices/vanguardquote-agent.git
+cd vanguardquote-agent
 
 # Install
 python3 -m venv venv
@@ -159,7 +159,7 @@ open widget/index.html
 ANTHROPIC_API_KEY=
 LANGCHAIN_API_KEY=
 LANGCHAIN_TRACING_V2=false
-LANGCHAIN_PROJECT=quoteflow-agent
+LANGCHAIN_PROJECT=vanguardquote-agent
 SUPABASE_URL=
 SUPABASE_KEY=
 ```

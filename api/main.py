@@ -10,7 +10,7 @@ import os
 
 load_dotenv()
 
-app = FastAPI(title="QuoteFlow API")
+app = FastAPI(title="VanguardQuote API")
 
 app.add_middleware(
     CORSMiddleware,
@@ -104,7 +104,7 @@ class ChatResponse(BaseModel):
 
 @app.get("/")
 def root():
-    return {"status": "QuoteFlow API running"}
+    return {"status": "VanguardQuote API running"}
 
 
 @app.post("/chat", response_model=ChatResponse)

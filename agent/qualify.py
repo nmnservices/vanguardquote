@@ -1,6 +1,6 @@
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
-from agent.intake import QuoteFlowState
+from agent.intake import VanguardQuoteState
 from dotenv import load_dotenv
 import os
 
@@ -114,7 +114,7 @@ Once you have answers to all the questions, say something like:
 Keep responses brief and friendly. Do not give a price yet."""
 
 
-def qualify_node(state: QuoteFlowState) -> QuoteFlowState:
+def qualify_node(state: VanguardQuoteState) -> VanguardQuoteState:
     """Ask config-driven clarifying questions based on classified service type."""
 
     messages = state.get("messages", [])

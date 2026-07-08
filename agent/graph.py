@@ -1,6 +1,6 @@
 from langgraph.graph import StateGraph, END
 from langchain_core.messages import HumanMessage, AIMessage
-from agent.intake import QuoteFlowState, intake_node
+from agent.intake import VanguardQuoteState, intake_node
 from agent.router import router_node
 from agent.qualify import qualify_node
 from agent.generate_quote import generate_quote_node
@@ -40,7 +40,7 @@ def handoff_with_log(state):
 
 # ── Conditional edges ──────────────────────────────────────────
 
-def route_after_router(state: QuoteFlowState) -> str:
+def route_after_router(state: VanguardQuoteState) -> str:
     if state.get("in_service_area") is False:
         return "out_of_area"
     if state.get("needs_site_visit"):
@@ -50,7 +50,7 @@ def route_after_router(state: QuoteFlowState) -> str:
 
 # ── Out of area handler ────────────────────────────────────────
 
-def out_of_area_node(state: QuoteFlowState) -> QuoteFlowState:
+def out_of_area_node(state: VanguardQuoteState) -> VanguardQuoteState:
     print("  [3/6] out_of_area...")
     msg = (
         "Thank you for reaching out! Unfortunately we don't currently "
@@ -65,7 +65,7 @@ def out_of_area_node(state: QuoteFlowState) -> QuoteFlowState:
 
 # ── Site visit handler ─────────────────────────────────────────
 
-def site_visit_node(state: QuoteFlowState) -> QuoteFlowState:
+def site_visit_node(state: VanguardQuoteState) -> VanguardQuoteState:
     print("  [3/6] site_visit...")
     msg = (
         "Based on what you've described, this job needs a free on-site "
@@ -82,7 +82,7 @@ def site_visit_node(state: QuoteFlowState) -> QuoteFlowState:
 # ── Build graph ────────────────────────────────────────────────
 
 def build_graph():
-    graph = StateGraph(QuoteFlowState)
+    graph = StateGraph(VanguardQuoteState)
 
     graph.add_node("intake", intake_with_log)
     graph.add_node("router", router_with_log)
@@ -138,7 +138,7 @@ if __name__ == "__main__":
         "reclassified": False,
     }
 
-    print("\n── Running full QuoteFlow graph ──\n")
+    print("\n── Running full VanguardQuote graph ──\n")
     result = graph.invoke(initial_state)
 
     print("\n── Final agent message ──")

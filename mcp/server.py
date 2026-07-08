@@ -1,6 +1,6 @@
 """
-QuoteFlow MCP Server
-Exposes QuoteFlow as an MCP tool that AI assistants can call directly.
+VanguardQuote MCP Server
+Exposes VanguardQuote as an MCP tool that AI assistants can call directly.
 """
 
 import asyncio
@@ -58,7 +58,7 @@ TOOLS = [
     {
         "name": "get_similar_jobs",
         "description": (
-            "Retrieve similar past jobs and their price ranges from the QuoteFlow database. "
+            "Retrieve similar past jobs and their price ranges from the VanguardQuote database. "
             "Useful for understanding typical pricing for a service type in a given area."
         ),
         "inputSchema": {
@@ -82,7 +82,7 @@ TOOLS = [
 # ── Tool handlers ──────────────────────────────────────────────
 
 def handle_get_quote(params: dict) -> str:
-    """Run QuoteFlow agent and return structured quote result."""
+    """Run VanguardQuote agent and return structured quote result."""
     import uuid
     message = params.get("message", "")
     session_id = params.get("session_id") or str(uuid.uuid4())
@@ -169,9 +169,9 @@ def handle_request(request: dict) -> str:
             "protocolVersion": "2024-11-05",
             "capabilities": {"tools": {}},
             "serverInfo": {
-                "name": "quoteflow-mcp",
+                "name": "vanguardquote-mcp",
                 "version": "1.0.0",
-                "description": "QuoteFlow AI quoting agent for home service businesses"
+                "description": "VanguardQuote AI quoting agent for home service businesses"
             }
         })
 
@@ -208,7 +208,7 @@ def handle_request(request: dict) -> str:
 
 def run_server():
     """Run MCP server over stdio — standard for Claude Desktop integration."""
-    print("QuoteFlow MCP Server started", file=sys.stderr)
+    print("VanguardQuote MCP Server started", file=sys.stderr)
 
     for line in sys.stdin:
         line = line.strip()

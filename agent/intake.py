@@ -11,7 +11,7 @@ load_dotenv()
 
 # ── State Schema ──────────────────────────────────────────────
 
-class QuoteFlowState(TypedDict):
+class VanguardQuoteState(TypedDict):
     messages: list
     lead_name: Optional[str]
     contact: Optional[str]
@@ -88,7 +88,7 @@ Do not ask about the job yet — that comes next.
 If the customer volunteers job information, acknowledge it briefly but stay focused on getting their name and contact first."""
 
 
-def intake_node(state: QuoteFlowState) -> QuoteFlowState:
+def intake_node(state: VanguardQuoteState) -> VanguardQuoteState:
     """Greet the lead and collect name + contact info."""
 
     messages = state.get("messages", [])
@@ -113,7 +113,7 @@ def intake_node(state: QuoteFlowState) -> QuoteFlowState:
 # ── Graph ─────────────────────────────────────────────────────
 
 def build_intake_graph():
-    graph = StateGraph(QuoteFlowState)
+    graph = StateGraph(VanguardQuoteState)
     graph.add_node("intake", intake_node)
     graph.set_entry_point("intake")
     graph.add_edge("intake", END)

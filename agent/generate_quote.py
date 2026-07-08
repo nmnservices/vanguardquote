@@ -1,6 +1,6 @@
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
-from agent.intake import QuoteFlowState
+from agent.intake import VanguardQuoteState
 from dotenv import load_dotenv
 import os
 import json
@@ -149,7 +149,7 @@ Instructions:
 Return ONLY valid JSON. No explanation, no markdown."""
 
 
-def generate_quote_node(state: QuoteFlowState) -> QuoteFlowState:
+def generate_quote_node(state: VanguardQuoteState) -> VanguardQuoteState:
     """Apply pricing config to qualify answers and produce a price range."""
 
     messages = state.get("messages", [])

@@ -1,6 +1,6 @@
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
-from agent.intake import QuoteFlowState
+from agent.intake import VanguardQuoteState
 from dotenv import load_dotenv
 import os
 
@@ -43,7 +43,7 @@ Return ONLY one of these three words:
 Customer's last message: {last_message}"""
 
 
-def decision_node(state: QuoteFlowState) -> QuoteFlowState:
+def decision_node(state: VanguardQuoteState) -> VanguardQuoteState:
     """Present the quote to the customer and capture their decision."""
 
     messages = state.get("messages", [])

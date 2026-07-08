@@ -1,6 +1,6 @@
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
-from agent.intake import QuoteFlowState
+from agent.intake import VanguardQuoteState
 from dotenv import load_dotenv
 import os
 import json
@@ -66,7 +66,7 @@ Given the conversation history, extract and return a JSON object with these fiel
 Return ONLY a valid JSON object. No explanation, no markdown, no code blocks."""
 
 
-def router_node(state: QuoteFlowState) -> QuoteFlowState:
+def router_node(state: VanguardQuoteState) -> VanguardQuoteState:
     """Classify service type, check service area, flag if site visit needed."""
 
     messages = state.get("messages", [])
